@@ -1,0 +1,64 @@
+{
+  "name": "Educational Assistant Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.9",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.pylint",
+        "ms-toolsai.jupyter",
+        "ms-vscode.vscode-json",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": {
+      "label": "Educational Assistant",
+      "onAutoForward": "notify"
+    }
+  },
+
+  "postCreateCommand": "pip install -r requirements.txt && pip install -r cloud-requirements.txt",
+
+  "postStartCommand": "echo '🚀 Educational Assistant Development Environment Ready!' && echo 'Run: python app.py to start the server'",
+
+  "remoteUser": "vscode",
+
+  "mounts": [
+    "source=${localWorkspaceFolder}/.env,target=/workspaces/${localWorkspaceFolderBasename}/.env,type=bind,consistency=cached"
+  ],
+
+  "containerEnv": {
+    "FLASK_ENV": "development",
+    "FLASK_DEBUG": "True",
+    "PYTHONPATH": "/workspaces/${localWorkspaceFolderBasename}"
+  },
+
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "shutdownAction": "stopContainer"
+}
