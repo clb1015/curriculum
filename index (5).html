@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Assistant - Lesson Plan Generator</title>
+    <meta name="description" content="AI-powered lesson plan generator for K-12 teachers using district curriculum documents">
+
+    <!-- External Resources -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>Educational Assistant</h1>
+                </div>
+                <p class="subtitle">AI-Powered Lesson Plan Generator for K-12 Teachers</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Input Section -->
+            <section class="input-section" id="inputSection">
+                <div class="input-card">
+                    <h2>
+                        <i class="fas fa-lightbulb"></i>
+                        Create Your Lesson Plan
+                    </h2>
+
+                    <form id="lessonForm" class="lesson-form">
+                        <!-- Main Query Input -->
+                        <div class="form-group">
+                            <label for="lessonQuery" class="form-label">
+                                <i class="fas fa-edit"></i>
+                                Lesson Description
+                            </label>
+                            <textarea 
+                                id="lessonQuery" 
+                                name="query" 
+                                class="form-textarea" 
+                                placeholder="Describe the lesson you need... (e.g., 'Create a 30-minute elementary music lesson about rhythm and beat for 2nd graders')"
+                                rows="4"
+                                required
+                            ></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span> / 1000 characters
+                            </div>
+                        </div>
+
+                        <!-- Duration Selection -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="duration" class="form-label">
+                                    <i class="fas fa-clock"></i>
+                                    Lesson Duration
+                                </label>
+                                <select id="duration" name="duration" class="form-select">
+                                    <option value="">Select duration...</option>
+                                    <option value="15 minutes">15 minutes</option>
+                                    <option value="20 minutes">20 minutes</option>
+                                    <option value="30 minutes">30 minutes</option>
+                                    <option value="45 minutes">45 minutes</option>
+                                    <option value="50 minutes">50 minutes</option>
+                                    <option value="60 minutes">1 hour</option>
+                                    <option value="90 minutes">90 minutes</option>
+                                    <option value="custom">Custom duration</option>
+                                </select>
+                            </div>
+
+                            <!-- Custom Duration Input (hidden by default) -->
+                            <div class="form-group" id="customDurationGroup" style="display: none;">
+                                <label for="customDuration" class="form-label">
+                                    <i class="fas fa-stopwatch"></i>
+                                    Custom Duration
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="customDuration" 
+                                    name="customDuration" 
+                                    class="form-input"
+                                    placeholder="e.g., 25 minutes, 1.5 hours"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- External Knowledge Toggle -->
+                        <div class="form-group">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="externalKnowledge" name="externalKnowledge" class="form-checkbox">
+                                <label for="externalKnowledge" class="checkbox-label">
+                                    <i class="fas fa-globe"></i>
+                                    Include external knowledge and best practices beyond district documents
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="generateBtn">
+                                <i class="fas fa-magic"></i>
+                                <span class="btn-text">Generate Lesson Plan</span>
+                                <div class="btn-loader" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Response Section -->
+            <section class="response-section" id="responseSection" style="display: none;">
+                <div class="response-card">
+                    <div class="response-header">
+                        <h2>
+                            <i class="fas fa-file-alt"></i>
+                            Your Lesson Plan
+                        </h2>
+                        <div class="response-actions">
+                            <button class="btn btn-secondary" id="copyBtn" title="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                                Copy
+                            </button>
+                            <button class="btn btn-secondary" id="downloadBtn" title="Download as Markdown">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </button>
+                            <button class="btn btn-outline" id="newLessonBtn" title="Create new lesson">
+                                <i class="fas fa-plus"></i>
+                                New Lesson
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="response-content" id="responseContent">
+                        <!-- Generated lesson plan will appear here -->
+                    </div>
+
+                    <div class="response-meta" id="responseMeta">
+                        <!-- Metadata about the response will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Section -->
+            <section class="loading-section" id="loadingSection" style="display: none;">
+                <div class="loading-card">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                    <h3>Generating Your Lesson Plan</h3>
+                    <p>Please wait while I analyze your requirements and create a customized lesson plan...</p>
+                    <div class="loading-steps">
+                        <div class="step active" id="step1">
+                            <i class="fas fa-search"></i>
+                            Analyzing your request
+                        </div>
+                        <div class="step" id="step2">
+                            <i class="fas fa-database"></i>
+                            Searching curriculum documents
+                        </div>
+                        <div class="step" id="step3">
+                            <i class="fas fa-brain"></i>
+                            Generating lesson plan
+                        </div>
+                        <div class="step" id="step4">
+                            <i class="fas fa-check"></i>
+                            Finalizing content
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section" id="errorSection" style="display: none;">
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Oops! Something went wrong</h3>
+                    <p id="errorMessage">We encountered an error while generating your lesson plan.</p>
+                    <div class="error-actions">
+                        <button class="btn btn-primary" id="retryBtn">
+                            <i class="fas fa-redo"></i>
+                            Try Again
+                        </button>
+                        <button class="btn btn-outline" id="backToFormBtn">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Form
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2024 Educational Assistant. Empowering teachers with AI-powered lesson planning.</p>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="#" class="footer-link">Support</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

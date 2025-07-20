@@ -1,0 +1,132 @@
+name: Multi-Platform Deployment
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Choose deployment platform'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - heroku
+        - render
+        - railway
+        - vercel
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  deploy-heroku:
+    if: github.event.inputs.platform == 'heroku' || github.event.inputs.platform == 'all' || github.event.inputs.platform == ''
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Heroku
+      uses: akhileshns/heroku-deploy@v3.12.14
+      with:
+        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+        heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+        heroku_email: ${{ secrets.HEROKU_EMAIL }}
+        buildpack: "heroku/python"
+
+    - name: Set Heroku environment variables
+      run: |
+        heroku config:set FLASK_ENV=production --app ${{ secrets.HEROKU_APP_NAME }}
+        heroku config:set FLASK_DEBUG=False --app ${{ secrets.HEROKU_APP_NAME }}
+        heroku config:set CHUNK_SIZE=300 --app ${{ secrets.HEROKU_APP_NAME }}
+        heroku config:set CHUNK_OVERLAP=50 --app ${{ secrets.HEROKU_APP_NAME }}
+        heroku config:set MAX_CHUNKS=4 --app ${{ secrets.HEROKU_APP_NAME }}
+        heroku config:set EMBEDDING_MODEL=all-MiniLM-L6-v2 --app ${{ secrets.HEROKU_APP_NAME }}
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+
+  deploy-render:
+    if: github.event.inputs.platform == 'render' || github.event.inputs.platform == 'all' || github.event.inputs.platform == ''
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Render
+      uses: johnbeynon/render-deploy-action@v0.0.8
+      with:
+        service-id: ${{ secrets.RENDER_SERVICE_ID }}
+        api-key: ${{ secrets.RENDER_API_KEY }}
+
+  deploy-railway:
+    if: github.event.inputs.platform == 'railway' || github.event.inputs.platform == 'all' || github.event.inputs.platform == ''
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Railway CLI
+      run: |
+        curl -fsSL https://railway.app/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+    - name: Deploy to Railway
+      run: |
+        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+        railway up --service ${{ secrets.RAILWAY_SERVICE_ID }}
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  deploy-gcp:
+    if: github.event.inputs.platform == 'gcp' || github.event.inputs.platform == 'all'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy educational-assistant \
+          --source . \
+          --platform managed \
+          --region us-central1 \
+          --allow-unauthenticated \
+          --memory 2Gi \
+          --cpu 2 \
+          --timeout 300 \
+          --set-env-vars FLASK_ENV=production,FLASK_DEBUG=False,CHUNK_SIZE=300
+
+  deploy-vercel:
+    if: github.event.inputs.platform == 'vercel' || github.event.inputs.platform == 'all'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+
+  notify:
+    needs: [deploy-heroku, deploy-render, deploy-railway, deploy-gcp, deploy-vercel]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Notify deployment status
+      run: |
+        echo "Deployment completed!"
+        echo "Check your applications at their respective URLs"

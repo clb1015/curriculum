@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "name": "educational-assistant",
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "runtime": "python3.9"
+      }
+    },
+    {
+      "src": "static/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/health",
+      "dest": "/app.py"
+    },
+    {
+      "src": "/ask",
+      "dest": "/app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/app.py"
+    }
+  ],
+  "env": {
+    "FLASK_ENV": "production",
+    "FLASK_DEBUG": "False",
+    "CHUNK_SIZE": "300",
+    "CHUNK_OVERLAP": "50",
+    "MAX_CHUNKS": "4",
+    "EMBEDDING_MODEL": "all-MiniLM-L6-v2"
+  },
+  "functions": {
+    "app.py": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "regions": ["iad1"]
+}

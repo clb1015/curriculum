@@ -1,0 +1,48 @@
+[build]
+  base = "."
+  command = "pip install -r cloud-requirements.txt"
+  publish = "."
+
+[build.environment]
+  PYTHON_VERSION = "3.9"
+  FLASK_ENV = "production"
+  FLASK_DEBUG = "False"
+  CHUNK_SIZE = "300"
+  CHUNK_OVERLAP = "50"
+  MAX_CHUNKS = "4"
+  EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/app/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/ask"
+  to = "/.netlify/functions/app"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/app"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  directory = "netlify/functions"
+
+[dev]
+  command = "python app.py"
+  port = 5000
+  targetPort = 5000
+  publish = "static"
+  autoLaunch = true
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
