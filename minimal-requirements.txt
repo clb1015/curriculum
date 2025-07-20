@@ -1,0 +1,26 @@
+# Minimal requirements for cloud deployment - most compatible versions
+# Core web framework
+flask>=2.0.0
+gunicorn>=20.0.0
+
+# Google Drive API (essential only)
+google-api-python-client>=2.0.0
+google-auth>=2.0.0
+google-auth-oauthlib>=1.0.0
+
+# PDF processing
+PyMuPDF>=1.20.0
+
+# ML/AI libraries (flexible versions)
+sentence-transformers>=2.0.0
+faiss-cpu>=1.7.0
+transformers>=4.20.0
+torch>=1.13.0
+numpy>=1.20.0
+
+# Essential utilities
+requests>=2.25.0
+python-dotenv>=0.19.0
+
+# Production server alternatives
+waitress>=2.0.0

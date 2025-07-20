@@ -1,0 +1,31 @@
+# Production-optimized requirements for cloud deployment
+# Core web framework
+flask==2.3.3
+gunicorn==21.2.0
+
+# Google Drive API (lighter alternative)
+google-api-python-client==2.100.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.1.0
+
+# PDF processing (optimized)
+PyMuPDF==1.23.5
+
+# ML/AI libraries (CPU-optimized versions)
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+transformers==4.33.2
+torch==2.0.1
+tokenizers==0.13.3
+
+# Utilities
+numpy==1.24.3
+requests==2.31.0
+python-dotenv==1.0.0
+Pillow==10.0.0
+
+# Production server
+waitress==2.1.2
+
+# Optional: For better performance
+psutil==5.9.5
